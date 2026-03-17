@@ -18,7 +18,7 @@ public static class InputServicePatches
         var tracker = ConsumedKeyTracker.Instance;
         if (tracker == null) return true;
 
-        if (tracker.IsKeyPathConsumed(keyBindingId))
+        if (tracker.IsKeyBindingConsumed(keyBindingId))
         {
             __result = false;
             return false; // Skip original method
@@ -38,7 +38,7 @@ public static class InputServicePatches
         var tracker = ConsumedKeyTracker.Instance;
         if (tracker == null) return true;
 
-        if (tracker.IsKeyPathConsumed(keyBindingId))
+        if (tracker.IsKeyBindingConsumed(keyBindingId))
         {
             __result = false;
             return false; // Skip original method
@@ -57,7 +57,7 @@ public static class InputServicePatches
         var tracker = ConsumedKeyTracker.Instance;
         if (tracker == null) return true;
 
-        if (tracker.IsKeyPathConsumed(keyBindingId))
+        if (tracker.IsKeyBindingConsumed(keyBindingId))
         {
             __result = false;
             return false; // Skip original method

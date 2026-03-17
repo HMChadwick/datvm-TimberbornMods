@@ -31,18 +31,24 @@ public class ConsumedKeyTracker : ILoadableSingleton
     }
 
     /// <summary>
-    /// Check if a key path (e.g., "S", "Shift+S") is currently consumed.
+    /// Check if a key binding ID's keys are currently consumed by active hotkeys.
     /// </summary>
-    public bool IsKeyPathConsumed(string keyPath)
+    public bool IsKeyBindingConsumed(string keyBindingId)
     {
-        // Check if any consumed key binding uses this key path
-        foreach (var bindingId in consumedKeyBindingIds)
-        {
-            var binding = keyBindingRegistry.Get(bindingId);
+        // Get the keys used by this binding
+        var targetBinding = keyBindingRegistry.Get(keyBindingId);
+        var targetKeys = GetKeysFromBinding(targetBinding);
 
-            // Check both primary and secondary bindings
-            if (IsKeyPathInBinding(keyPath, binding.PrimaryInputBinding) ||
-                IsKeyPathInBinding(keyPath, binding.SecondaryInputBinding))
+        if (targetKeys.Count == 0) return false;
+
+        // Check if any consumed hotkey uses overlapping keys
+        foreach (var consumedBindingId in consumedKeyBindingIds)
+        {
+            var consumedBinding = keyBindingRegistry.Get(consumedBindingId);
+            var consumedKeys = GetKeysFromBinding(consumedBinding);
+
+            // If the consumed binding uses any of the same keys, block it
+            if (targetKeys.Overlaps(consumedKeys))
             {
                 return true;
             }
@@ -51,23 +57,30 @@ public class ConsumedKeyTracker : ILoadableSingleton
         return false;
     }
 
-    bool IsKeyPathInBinding(string keyPath, InputBinding? binding)
+    HashSet<string> GetKeysFromBinding(KeyBinding binding)
     {
-        if (binding == null) return false;
+        var keys = new HashSet<string>();
 
-        // The binding's Path contains the key (e.g., "<Keyboard>/s")
-        // We need to check if this matches the requested key path
-        // The keyPath might be just "S" or with modifiers
+        // Get keys from both primary and secondary bindings
+        AddKeysFromInputBinding(keys, binding.PrimaryInputBinding);
+        AddKeysFromInputBinding(keys, binding.SecondaryInputBinding);
 
-        // Extract the key from the binding path
-        var bindingKey = ExtractKeyFromPath(binding.Path);
-        if (bindingKey == null) return false;
+        return keys;
+    }
 
-        // Normalize both for comparison
-        var normalizedKeyPath = NormalizeKeyPath(keyPath);
-        var normalizedBindingPath = NormalizeKeyPath(bindingKey);
+    void AddKeysFromInputBinding(HashSet<string> keys, InputBinding? binding)
+    {
+        if (binding == null) return;
 
-        return normalizedBindingPath == normalizedKeyPath;
+        // Extract the key from the path
+        var key = ExtractKeyFromPath(binding.Path);
+        if (key != null)
+        {
+            keys.Add(NormalizeKeyPath(key));
+        }
+
+        // TODO: Also extract modifier keys if we need more precise matching
+        // For now, just the main key is sufficient
     }
 
     string? ExtractKeyFromPath(string path)

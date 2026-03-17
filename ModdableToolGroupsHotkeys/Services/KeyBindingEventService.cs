@@ -1,6 +1,9 @@
 ﻿namespace ModdableToolGroupsHotkeys.Services;
 
-public class KeyBindingEventService(InputService inputService) : IInputProcessor, ILoadableSingleton
+public class KeyBindingEventService(
+    InputService inputService,
+    ConsumedKeyTracker consumedKeyTracker
+) : IInputProcessor, ILoadableSingleton
 {
     readonly Dictionary<string, KeyBindingEvent> mapper = [];
 
@@ -13,10 +16,17 @@ public class KeyBindingEventService(InputService inputService) : IInputProcessor
 
     public bool ProcessInput()
     {
+        // Clear consumed keys from the previous frame
+        consumedKeyTracker.ClearConsumedKeys();
+
+        // Check for hotkey activations
         foreach (var ev in mapper.Values)
         {
             if (inputService.IsKeyDown(ev.KeyBindingId))
             {
+                // Mark this key binding as consumed
+                consumedKeyTracker.ConsumeKeyBinding(ev.KeyBindingId);
+
                 ev.RaiseOnDown();
                 return true;
             }

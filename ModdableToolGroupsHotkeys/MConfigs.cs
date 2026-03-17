@@ -9,6 +9,7 @@ public class MConfigs : Configurator
 {
     public override void Configure()
     {
+        Bind<ConsumedKeyTracker>().AsSingleton();
         Bind<KeyBindingEventService>().AsSingleton();
         Bind<ToolHotkeySpecService>().AsSingleton();
         Bind<ToolHotkeyListener>().AsSingleton();
